@@ -71,13 +71,13 @@ const Index = () => {
     if (streamRef.current) {
       chunksRef.current = [];
       
-      // Используем WebM с H.264 кодеком для лучшей совместимости
+      // Используем WebM с VP9 кодеком для записи, затем конвертируем в MP4
       const options = {
-        mimeType: 'video/webm;codecs=h264',
-        videoBitsPerSecond: 2500000 // 2.5 Mbps для стабильного качества
+        mimeType: 'video/webm;codecs=vp9',
+        videoBitsPerSecond: 5000000 // 5 Mbps для высокого качества
       };
       
-      // Fallback на стандартный WebM если H.264 не поддерживается
+      // Fallback на стандартный WebM если VP9 не поддерживается
       if (!MediaRecorder.isTypeSupported(options.mimeType)) {
         options.mimeType = 'video/webm';
       }
@@ -134,12 +134,12 @@ const Index = () => {
 
     try {
       const formData = new FormData();
-      // Всегда используем webm расширение для совместимости с Telegram
-      formData.append('video', recordedVideo, 'video.webm');
+      // Отправляем как документ (файл для скачивания) в формате MP4
+      formData.append('document', recordedVideo, 'video.mp4');
       formData.append('caption', `Комментарии: ${notes}`);
       formData.append('chat_id', '5215501225');
 
-      const response = await fetch(`https://api.telegram.org/bot8286818285:AAGqkSsTlsbKCT1guKYoDpkL_OcldAVyuSE/sendVideo`, {
+      const response = await fetch(`https://api.telegram.org/bot8286818285:AAGqkSsTlsbKCT1guKYoDpkL_OcldAVyuSE/sendDocument`, {
         method: 'POST',
         body: formData
       });
