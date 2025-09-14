@@ -71,18 +71,29 @@ const Index = () => {
     if (streamRef.current) {
       chunksRef.current = [];
       
-      // Используем WebM с VP9 кодеком для записи, затем конвертируем в MP4
-      const options = {
-        mimeType: 'video/webm;codecs=vp9',
-        videoBitsPerSecond: 5000000 // 5 Mbps для высокого качества
-      };
+      // Используем самые совместимые кодеки для iOS/Android/Telegram
+      const codecOptions = [
+        // H.264 + AAC - лучшая совместимость
+        { mimeType: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', videoBitsPerSecond: 2500000, audioBitsPerSecond: 128000 },
+        // WebM + VP8 + Opus - распространенный fallback
+        { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 2500000, audioBitsPerSecond: 128000 },
+        // WebM + VP9 + Opus - современные браузеры
+        { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 2500000, audioBitsPerSecond: 128000 },
+        // Простой WebM - минимальные требования
+        { mimeType: 'video/webm', videoBitsPerSecond: 2500000 }
+      ];
       
-      // Fallback на стандартный WebM если VP9 не поддерживается
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options.mimeType = 'video/webm';
+      let selectedOptions = codecOptions[codecOptions.length - 1]; // fallback
+      
+      // Находим первый поддерживаемый кодек
+      for (const option of codecOptions) {
+        if (MediaRecorder.isTypeSupported(option.mimeType)) {
+          selectedOptions = option;
+          break;
+        }
       }
       
-      const mediaRecorder = new MediaRecorder(streamRef.current, options);
+      const mediaRecorder = new MediaRecorder(streamRef.current, selectedOptions);
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (event) => {
@@ -92,7 +103,7 @@ const Index = () => {
       };
 
       mediaRecorder.onstop = () => {
-        const videoBlob = new Blob(chunksRef.current, { type: options.mimeType });
+        const videoBlob = new Blob(chunksRef.current, { type: selectedOptions.mimeType });
         setRecordedVideo(videoBlob);
         setVideoUrl(URL.createObjectURL(videoBlob));
         stopCamera();
