@@ -70,7 +70,26 @@ const Index = () => {
 
     if (streamRef.current) {
       chunksRef.current = [];
-      const mediaRecorder = new MediaRecorder(streamRef.current);
+      
+      // Проверяем поддерживаемые форматы
+      const mimeTypes = [
+        'video/mp4',
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm'
+      ];
+      
+      let selectedMimeType = 'video/webm';
+      for (const mimeType of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          selectedMimeType = mimeType;
+          break;
+        }
+      }
+      
+      const mediaRecorder = new MediaRecorder(streamRef.current, {
+        mimeType: selectedMimeType
+      });
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (event) => {
@@ -80,7 +99,7 @@ const Index = () => {
       };
 
       mediaRecorder.onstop = () => {
-        const videoBlob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const videoBlob = new Blob(chunksRef.current, { type: selectedMimeType });
         setRecordedVideo(videoBlob);
         setVideoUrl(URL.createObjectURL(videoBlob));
         stopCamera();
@@ -121,7 +140,9 @@ const Index = () => {
 
     try {
       const formData = new FormData();
-      formData.append('video', recordedVideo, 'video.webm');
+      // Определяем расширение файла на основе типа
+      const fileExtension = recordedVideo.type.includes('mp4') ? 'mp4' : 'webm';
+      formData.append('video', recordedVideo, `video.${fileExtension}`);
       formData.append('caption', `Комментарии: ${notes}`);
       formData.append('chat_id', '5215501225');
 
