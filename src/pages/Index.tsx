@@ -71,25 +71,18 @@ const Index = () => {
     if (streamRef.current) {
       chunksRef.current = [];
       
-      // Проверяем поддерживаемые форматы
-      const mimeTypes = [
-        'video/mp4',
-        'video/webm;codecs=vp9',
-        'video/webm;codecs=vp8',
-        'video/webm'
-      ];
+      // Используем WebM с H.264 кодеком для лучшей совместимости
+      const options = {
+        mimeType: 'video/webm;codecs=h264',
+        videoBitsPerSecond: 2500000 // 2.5 Mbps для стабильного качества
+      };
       
-      let selectedMimeType = 'video/webm';
-      for (const mimeType of mimeTypes) {
-        if (MediaRecorder.isTypeSupported(mimeType)) {
-          selectedMimeType = mimeType;
-          break;
-        }
+      // Fallback на стандартный WebM если H.264 не поддерживается
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'video/webm';
       }
       
-      const mediaRecorder = new MediaRecorder(streamRef.current, {
-        mimeType: selectedMimeType
-      });
+      const mediaRecorder = new MediaRecorder(streamRef.current, options);
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (event) => {
@@ -99,13 +92,14 @@ const Index = () => {
       };
 
       mediaRecorder.onstop = () => {
-        const videoBlob = new Blob(chunksRef.current, { type: selectedMimeType });
+        const videoBlob = new Blob(chunksRef.current, { type: options.mimeType });
         setRecordedVideo(videoBlob);
         setVideoUrl(URL.createObjectURL(videoBlob));
         stopCamera();
       };
 
-      mediaRecorder.start();
+      // Записываем данные каждые 1000мс для предотвращения потери данных
+      mediaRecorder.start(1000);
       setIsRecording(true);
     }
   };
@@ -140,9 +134,8 @@ const Index = () => {
 
     try {
       const formData = new FormData();
-      // Определяем расширение файла на основе типа
-      const fileExtension = recordedVideo.type.includes('mp4') ? 'mp4' : 'webm';
-      formData.append('video', recordedVideo, `video.${fileExtension}`);
+      // Всегда используем webm расширение для совместимости с Telegram
+      formData.append('video', recordedVideo, 'video.webm');
       formData.append('caption', `Комментарии: ${notes}`);
       formData.append('chat_id', '5215501225');
 
