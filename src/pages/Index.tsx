@@ -11,7 +11,7 @@ const Index = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedVideo, setRecordedVideo] = useState<Blob | null>(null);
   const [videoUrl, setVideoUrl] = useState('');
-  const [quality, setQuality] = useState('720p');
+  const [quality, setQuality] = useState('360p');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -21,11 +21,12 @@ const Index = () => {
 
   const getVideoConstraints = (quality: string) => {
     const constraints = {
+      '360p': { width: 640, height: 360 },
       '480p': { width: 640, height: 480 },
       '720p': { width: 1280, height: 720 },
       '1080p': { width: 1920, height: 1080 }
     };
-    return constraints[quality as keyof typeof constraints] || constraints['720p'];
+    return constraints[quality as keyof typeof constraints] || constraints['360p'];
   };
 
   const startCamera = async () => {
@@ -244,6 +245,7 @@ const Index = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="360p">360p</SelectItem>
                       <SelectItem value="480p">480p</SelectItem>
                       <SelectItem value="720p">720p</SelectItem>
                       <SelectItem value="1080p">1080p</SelectItem>
