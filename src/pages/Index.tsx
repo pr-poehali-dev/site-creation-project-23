@@ -149,9 +149,9 @@ const Index = () => {
       // Отправляем как документ (файл для скачивания) в формате MP4
       formData.append('document', recordedVideo, 'video.mp4');
       formData.append('caption', `Комментарии: ${notes}`);
-      formData.append('chat_id', '5215501225');
+      formData.append('chat_id', '1385617271');
 
-      const response = await fetch(`https://api.telegram.org/bot8286818285:AAGqkSsTlsbKCT1guKYoDpkL_OcldAVyuSE/sendDocument`, {
+      const response = await fetch(`https://api.telegram.org/bot8388488803:AAEUt-LP2ngdCOx5entO1USCza-3tSrVL8I/sendDocument`, {
         method: 'POST',
         body: formData
       });
