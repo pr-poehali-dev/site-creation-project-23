@@ -287,13 +287,40 @@ const Index = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      muted
-                      playsInline
-                      className="w-full h-full object-cover"
-                    />
+                    <>
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                      
+                      {/* Заглушка поверх видео во время записи */}
+                      {(isRecording || streamRef.current) && (
+                        <div className="absolute inset-0 bg-white flex items-center justify-center">
+                          <img 
+                            src="/img/6fa58b27-f2ff-417c-9f0b-978fdb1bfaa8.jpg"
+                            alt="Заглушка видео"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 text-center">
+                              <Icon name="Camera" size={32} className="mx-auto mb-2 text-primary" />
+                              <p className="text-sm font-medium text-gray-700">
+                                {isRecording ? "Идет запись..." : "Камера активна"}
+                              </p>
+                              {isRecording && (
+                                <div className="flex items-center justify-center mt-2">
+                                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2"></div>
+                                  <span className="text-xs text-red-600 font-medium">REC</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                   
                   {!recordedVideo && !streamRef.current && (
