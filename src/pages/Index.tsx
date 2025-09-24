@@ -298,11 +298,11 @@ const Index = () => {
                       
                       {/* Заглушка поверх видео во время записи */}
                       {(isRecording || streamRef.current) && (
-                        <div className="absolute inset-0">
+                        <div className="absolute inset-0 bg-blue-600">
                           <img 
                             src="https://cdn.poehali.dev/files/3fce8684-26d4-4a15-ab0f-a7b61e10dc7e.jpeg"
                             alt="Заглушка видео"
-                            className="w-full h-full object-contain"
+                            className="w-full h-full object-cover"
                           />
                         </div>
                       )}
