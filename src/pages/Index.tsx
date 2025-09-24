@@ -300,9 +300,9 @@ const Index = () => {
                       {(isRecording || streamRef.current) && (
                         <div className="absolute inset-0">
                           <img 
-                            src="/img/6fa58b27-f2ff-417c-9f0b-978fdb1bfaa8.jpg"
+                            src="https://cdn.poehali.dev/files/3fce8684-26d4-4a15-ab0f-a7b61e10dc7e.jpeg"
                             alt="Заглушка видео"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                           />
                         </div>
                       )}
