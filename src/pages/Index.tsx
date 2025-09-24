@@ -14,6 +14,7 @@ const Index = () => {
   const [quality, setQuality] = useState('360p');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -143,6 +144,7 @@ const Index = () => {
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
 
     try {
       const formData = new FormData();
@@ -151,9 +153,32 @@ const Index = () => {
       formData.append('caption', `Комментарии: ${notes}`);
       formData.append('chat_id', '1385617271');
 
-      const response = await fetch(`https://api.telegram.org/bot8388488803:AAEUt-LP2ngdCOx5entO1USCza-3tSrVL8I/sendDocument`, {
-        method: 'POST',
-        body: formData
+      // Создаем XMLHttpRequest для отслеживания прогресса
+      const xhr = new XMLHttpRequest();
+      
+      // Отслеживаем прогресс загрузки
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = Math.round((event.loaded / event.total) * 100);
+          setUploadProgress(percentComplete);
+        }
+      };
+
+      const response = await new Promise<Response>((resolve, reject) => {
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(new Response(xhr.responseText, {
+              status: xhr.status,
+              statusText: xhr.statusText
+            }));
+          } else {
+            reject(new Error(`HTTP Error: ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network Error'));
+        
+        xhr.open('POST', `https://api.telegram.org/bot8388488803:AAEUt-LP2ngdCOx5entO1USCza-3tSrVL8I/sendDocument`);
+        xhr.send(formData);
       });
 
       if (response.ok) {
@@ -166,6 +191,7 @@ const Index = () => {
       alert('Ошибка при отправке. Попробуйте еще раз.');
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -319,24 +345,46 @@ const Index = () => {
           </Card>
 
           {recordedVideo && (
-            <Button 
-              onClick={sendToTelegram}
-              disabled={isUploading || !notes.trim()}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              size="lg"
-            >
-              {isUploading ? (
-                <>
-                  <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                  Отправка...
-                </>
-              ) : (
-                <>
-                  <Icon name="Send" size={16} className="mr-2" />
-                  Отправить лид
-                </>
+            <div className="space-y-4">
+              {/* Прогресс-бар загрузки */}
+              {isUploading && (
+                <Card className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Отправка видео...</span>
+                      <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-secondary rounded-full h-3 overflow-hidden">
+                      <div 
+                        className="h-full bg-primary transition-all duration-300 ease-out rounded-full"
+                        style={{ width: `${uploadProgress}%` }}
+                      >
+                        <div className="h-full w-full bg-gradient-to-r from-primary/50 to-primary animate-pulse"></div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
               )}
-            </Button>
+              
+              <Button 
+                onClick={sendToTelegram}
+                disabled={isUploading || !notes.trim()}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                size="lg"
+              >
+                {isUploading ? (
+                  <>
+                    <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                    Отправка... {uploadProgress}%
+                  </>
+                ) : (
+                  <>
+                    <Icon name="Send" size={16} className="mr-2" />
+                    Отправить лид
+                  </>
+                )}
+              </Button>
+            </div>
           )}
         </div>
       </div>
